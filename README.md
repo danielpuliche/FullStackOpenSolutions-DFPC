@@ -8,6 +8,6 @@ Exercises solution
 
 ## Part 1
 
-
+[Course info](./Part1/courseinfo)
 
 ## Part 2
