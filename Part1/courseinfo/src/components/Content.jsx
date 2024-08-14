@@ -1,17 +1,13 @@
+import Part from "./Part";
+
 const Content = (props) => {
   const { parts, exercises } = props;
 
   return (
     <>
-      <p>
-        {parts[0]} {exercises[0]}
-      </p>
-      <p>
-        {parts[1]} {exercises[1]}
-      </p>
-      <p>
-        {parts[2]} {exercises[2]}
-      </p>
+      <Part name={parts[0]} exercises={exercises[0]}/>
+      <Part name={parts[1]} exercises={exercises[1]}/>
+      <Part name={parts[2]} exercises={exercises[2]}/>
     </>
   );
 };
