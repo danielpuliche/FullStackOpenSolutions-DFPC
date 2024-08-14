@@ -8,6 +8,10 @@ Exercises solution
 
 ## Part 1
 
+<<<<<<< HEAD
 
+=======
+Exercise 1: [Course info](./Part1/courseinfo)
+>>>>>>> ae6db6c (Update README.md)
 
 ## Part 2
