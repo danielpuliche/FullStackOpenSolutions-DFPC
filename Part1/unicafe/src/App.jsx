@@ -1,10 +1,9 @@
 import { useState } from "react";
 import Title from "./components/Title";
 import Button from "./components/Button";
-import Stat from "./components/Stat";
+import Statistics from "./components/Statistics";
 
 function App() {
-  // Save clicks of each button
   const [good, setGood] = useState(0);
   const [neutral, setNeutral] = useState(0);
   const [bad, setBad] = useState(0);
@@ -45,7 +44,7 @@ function App() {
 
   const calculatePositive = (updatedGood, updatedAll) => {
     const positiveRate = 100 * (updatedGood / updatedAll);
-    setPositive(positiveRate +  " %");
+    setPositive(positiveRate + " %");
   };
 
   return (
@@ -56,15 +55,14 @@ function App() {
         <Button handleClick={handleClickNeutral} text={"Neutral"} />
         <Button handleClick={handleClickBad} text={"Bad"} />
       </div>
-      <div>
-        <Title title={"Statistics"} />
-        <Stat text={"Good"} value={good} />
-        <Stat text={"Neutral"} value={neutral} />
-        <Stat text={"Bad"} value={bad} />
-        <Stat text={"All"} value={all} />
-        <Stat text={"Average"} value={average} />
-        <Stat text={"Positive"} value={positive} />
-      </div>
+      <Statistics
+        good={good}
+        neutral={neutral}
+        bad={bad}
+        all={all}
+        average={average}
+        positive={positive}
+      />
     </div>
   );
 }
