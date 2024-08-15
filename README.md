@@ -8,6 +8,7 @@ Exercises solution
 
 ## Part 1
 
-Exercise 1, 2, 3, 4, 5: [Course info](./Part1/courseinfo)
+Exercises 1, 2, 3, 4, 5: [Courseinfo](./Part1/courseinfo)
+Exercises 6: [Unicafe]
 
 ## Part 2
