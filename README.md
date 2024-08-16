@@ -10,5 +10,6 @@ Exercises solution
 
 - Exercises 1, 2, 3, 4, 5: [Courseinfo](./Part1/courseinfo)
 - Exercises 6, 7, 8, 9, 10, 11: [Unicafe](./Part1/unicafe)
+- Exercises 12, 13, 14: [Anecdotes](./Part1/anecdotes)
 
 ## Part 2
