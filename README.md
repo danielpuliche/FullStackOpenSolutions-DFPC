@@ -14,4 +14,4 @@ Exercises solution
 
 ## Part 2
 
-- Exercise 1: [CourseInfo](./Part2/courseinfo)
+- Exercise 1,2,3,4,5: [CourseInfo](./Part2/courseinfo)
