@@ -13,3 +13,5 @@ Exercises solution
 - Exercises 12, 13, 14: [Anecdotes](./Part1/anecdotes)
 
 ## Part 2
+
+- Exercise 1: [CourseInfo](./Part2/courseinfo)
