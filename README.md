@@ -14,5 +14,5 @@ Exercises solution
 
 ## Part 2
 
-- Exercises 1,2,3,4,5: [CourseInfo](./Part2/courseinfo)
-- Exercises 6,7:
+- Exercises 1, 2, 3, 4, 5: [CourseInfo](./Part2/courseinfo)
+- Exercises 6, 7, 8, 9, 10: [Phonebook](./Part2/phonebook)
