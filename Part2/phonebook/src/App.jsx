@@ -9,13 +9,21 @@ const App = () => {
     event.preventDefault();
     if (newName.trim() !== "") {
       const newPerson = { name: newName.trim() };
-      setPersons(persons.concat(newPerson));
-      setNewName("");
+      if (checkName(newPerson))
+        alert(`${newName.trim()} is already added to phonebook`);
+      else {
+        setPersons(persons.concat(newPerson));
+        setNewName("");
+      }
     }
   };
 
   const handleNewName = (event) => {
     setNewName(event.target.value);
+  };
+
+  const checkName = (newPerson) => {
+    return persons.some((person) => person.name === newPerson.name);
   };
 
   return (

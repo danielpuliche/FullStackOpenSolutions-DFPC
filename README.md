@@ -15,4 +15,4 @@ Exercises solution
 ## Part 2
 
 - Exercises 1,2,3,4,5: [CourseInfo](./Part2/courseinfo)
-- Exercises 6:
+- Exercises 6,7:
