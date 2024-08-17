@@ -6,7 +6,7 @@ const Contacts = ({ persons }) => {
       <h2>Numbers</h2>
       <div>
         {persons.map((person) => (
-          <Contact key={person.name} person={person} />
+          <Contact key={person.id} person={person} />
         ))}
       </div>
     </div>
