@@ -22,34 +22,82 @@ const App = () => {
     });
   }, []);
 
-  // Hander add new contact
-  const handleAdd = (event) => {
-    event.preventDefault();
-    if (newName.trim() === "" || newNumber.trim() === "") {
-      alert(`There's an empty field.`);
-    } else if (checkName(newName))
-      alert(`'${newName.trim()}' is already added to phonebook`);
-    else {
-      const newPerson = {
-        name: newName.trim(),
-        number: newNumber.trim(),
-      };
-      addNewPerson(newPerson);
-    }
-  };
+  // Update number
+  const updatePersonNumber = (personName, newNumber) => {
+    const personToChange = persons.find((person) => person.name === personName);
+    const updatedPerson = {
+      ...personToChange,
+      number: newNumber,
+    };
 
-  // Add new person
-  const addNewPerson = (newPerson) => {
     personService
-      .create(newPerson)
-      .then((returnedNote) => {
-        const newPersons = persons.concat(returnedNote);
+      .updateNumber(updatedPerson, personToChange.id)
+      .then((returnedPerson) => {
+        const newPersons = persons
+          .filter((person) => person.id !== returnedPerson.id)
+          .concat(returnedPerson);
         setPersons(newPersons);
         filter(filterWord, newPersons);
         setNewName("");
         setNewNumber("");
       })
-      .catch((err) => alert("Error at add new contact"));
+      .catch((err) => {
+        alert("Error updating number");
+        console.log(err);
+      });
+  };
+
+  // Add new person
+  const addNewPerson = (newName, newNumber) => {
+    const newPerson = {
+      name: newName,
+      number: newNumber,
+    };
+
+    personService
+      .create(newPerson)
+      .then((returnedPerson) => {
+        const newPersons = persons.concat(returnedPerson);
+        setPersons(newPersons);
+        filter(filterWord, newPersons);
+        setNewName("");
+        setNewNumber("");
+      })
+      .catch((err) => alert("Error adding a new contact"));
+  };
+
+  // Handle Delete
+  const handleDelete = (person) => {
+    if (confirm(`Delete to '${person.name}'?`)) {
+      personService
+        .deleteObject(person.id)
+        .then((deletedPerson) => {
+          const newPersons = persons.filter(
+            (person) => person.id !== deletedPerson.id
+          );
+          setPersons(newPersons);
+          filter(filterWord, newPersons);
+        })
+        .catch((err) => alert("Error deleting person"));
+    }
+  };
+
+  // Hander add new contact button
+  const handleAdd = (event) => {
+    event.preventDefault();
+    if (newName.trim() === "" || newNumber.trim() === "") {
+      alert(`There's an empty field.`);
+    } else if (checkName(newName.trim())) {
+      if (
+        confirm(
+          `${newName.trim()} is already added to phonebook, replace the old number with a new one?`
+        )
+      ) {
+        updatePersonNumber(newName.trim(), newNumber.trim());
+      }
+    } else {
+      addNewPerson(newName.trim(), newNumber.trim());
+    }
   };
 
   // ===== Handlers for the input changes
@@ -59,11 +107,6 @@ const App = () => {
 
   const handleNewNumber = (event) => {
     setNewNumber(event.target.value);
-  };
-
-  // Check if the name is not repeated
-  const checkName = (newName) => {
-    return persons.some((person) => person.name === newName);
   };
 
   // ===== Handler for the filter
@@ -80,17 +123,9 @@ const App = () => {
     setFilteredPersons(fP);
   };
 
-  // Handle Delete
-  const handleDelete = (person) => {
-    if (confirm(`Delete to '${person.name}'?`)) {
-      personService.deleteObject(person.id).then((deletedPerson) => {
-        const newPersons = persons.filter(
-          (person) => person.id !== deletedPerson.id
-        );
-        setPersons(newPersons);
-        filter(filterWord, newPersons);
-      });
-    }
+  // Check if the name is not repeated
+  const checkName = (newName) => {
+    return persons.some((person) => person.name === newName);
   };
 
   // ====== Render section
