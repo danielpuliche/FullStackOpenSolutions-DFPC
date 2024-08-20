@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 
+// Components
 import Contacts from "./components/Contacts";
 import Filter from "./components/Filter";
 import PersonForm from "./components/PersonForm";
+
+// Services
+import personService from "./services/persons";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -12,16 +15,14 @@ const App = () => {
   const [filterWord, setFilterWord] = useState("");
   const [filteredPersons, setFilteredPersons] = useState([]);
 
-  const baseURL = "http://localhost:3001/persons";
-
   useEffect(() => {
-    axios.get(baseURL).then((response) => {
-      setPersons(response.data);
-      setFilteredPersons(response.data);
+    personService.getAll().then((initialPersons) => {
+      setPersons(initialPersons);
+      setFilteredPersons(initialPersons);
     });
   }, []);
 
-  // ===== Add a new contact
+  // Hander add new contact
   const handleAdd = (event) => {
     event.preventDefault();
     if (newName.trim() === "" || newNumber.trim() === "") {
@@ -33,15 +34,22 @@ const App = () => {
         name: newName.trim(),
         number: newNumber.trim(),
       };
+      addNewPerson(newPerson);
+    }
+  };
 
-      axios.post(baseURL, newPerson).then((response) => {
-        const newPersons = persons.concat(response.data);
+  // Add new person
+  const addNewPerson = (newPerson) => {
+    personService
+      .create(newPerson)
+      .then((returnedNote) => {
+        const newPersons = persons.concat(returnedNote);
         setPersons(newPersons);
         filter(filterWord, newPersons);
         setNewName("");
         setNewNumber("");
-      });
-    }
+      })
+      .catch((err) => alert("Error at add new contact"));
   };
 
   // ===== Handlers for the input changes
