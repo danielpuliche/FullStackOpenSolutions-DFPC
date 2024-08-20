@@ -1,11 +1,15 @@
 import Contact from "./Contact";
 
-const Contacts = ({ persons }) => {
+const Contacts = ({ persons, handleDelete }) => {
   return (
     <div>
       <div>
         {persons.map((person) => (
-          <Contact key={person.id} person={person} />
+          <Contact
+            key={person.id}
+            person={person}
+            handleDelete={() => handleDelete(person)}
+          />
         ))}
       </div>
     </div>

@@ -6,4 +6,7 @@ const getAll = () => axios.get(baseURL).then((response) => response.data);
 const create = (newObject) =>
   axios.post(baseURL, newObject).then((response) => response.data);
 
-export default { getAll, create };
+const deleteObject = (id) =>
+  axios.delete(`${baseURL}/${id}`).then((response) => response.data);
+
+export default { getAll, create, deleteObject };

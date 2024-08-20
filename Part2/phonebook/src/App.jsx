@@ -80,6 +80,19 @@ const App = () => {
     setFilteredPersons(fP);
   };
 
+  // Handle Delete
+  const handleDelete = (person) => {
+    if (confirm(`Delete to '${person.name}'?`)) {
+      personService.deleteObject(person.id).then((deletedPerson) => {
+        const newPersons = persons.filter(
+          (person) => person.id !== deletedPerson.id
+        );
+        setPersons(newPersons);
+        filter(filterWord, newPersons);
+      });
+    }
+  };
+
   // ====== Render section
   return (
     <div>
@@ -94,7 +107,7 @@ const App = () => {
         handleAdd={handleAdd}
       />
       <h3>Numbers</h3>
-      <Contacts persons={filteredPersons} />
+      <Contacts persons={filteredPersons} handleDelete={handleDelete} />
     </div>
   );
 };
