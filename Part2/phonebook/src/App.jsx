@@ -12,33 +12,39 @@ const App = () => {
   const [filterWord, setFilterWord] = useState("");
   const [filteredPersons, setFilteredPersons] = useState([]);
 
+  const baseURL = "http://localhost:3001/persons";
+
   useEffect(() => {
-    axios.get("http://localhost:3001/persons").then((response) => {
+    axios.get(baseURL).then((response) => {
       setPersons(response.data);
       setFilteredPersons(response.data);
     });
   }, []);
 
+  // ===== Add a new contact
   const handleAdd = (event) => {
     event.preventDefault();
-    if (newName.trim() !== "" && newNumber.trim() !== "") {
+    if (newName.trim() === "" || newNumber.trim() === "") {
+      alert(`There's an empty field.`);
+    } else if (checkName(newName))
+      alert(`'${newName.trim()}' is already added to phonebook`);
+    else {
       const newPerson = {
         name: newName.trim(),
         number: newNumber.trim(),
-        id: persons.length + 1,
       };
-      if (checkName(newPerson))
-        alert(`${newName.trim()} is already added to phonebook`);
-      else {
-        const newPersons = persons.concat(newPerson);
+
+      axios.post(baseURL, newPerson).then((response) => {
+        const newPersons = persons.concat(response.data);
         setPersons(newPersons);
+        filter(filterWord, newPersons);
         setNewName("");
         setNewNumber("");
-        filter(filterWord, newPersons);
-      }
-    } else alert(`There's an empty field.`);
+      });
+    }
   };
 
+  // ===== Handlers for the input changes
   const handleNewName = (event) => {
     setNewName(event.target.value);
   };
@@ -47,10 +53,12 @@ const App = () => {
     setNewNumber(event.target.value);
   };
 
-  const checkName = (newPerson) => {
-    return persons.some((person) => person.name === newPerson.name);
+  // Check if the name is not repeated
+  const checkName = (newName) => {
+    return persons.some((person) => person.name === newName);
   };
 
+  // ===== Handler for the filter
   const handleFilter = (event) => {
     const newFilterWord = event.target.value;
     filter(newFilterWord, persons);
@@ -64,6 +72,7 @@ const App = () => {
     setFilteredPersons(fP);
   };
 
+  // ====== Render section
   return (
     <div>
       <h2>Phonebook</h2>
