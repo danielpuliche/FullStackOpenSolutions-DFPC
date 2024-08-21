@@ -7,6 +7,7 @@ import PersonForm from "./components/PersonForm";
 
 // Services
 import personService from "./services/persons";
+import Notification from "./components/Notification";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -14,6 +15,10 @@ const App = () => {
   const [newNumber, setNewNumber] = useState("");
   const [filterWord, setFilterWord] = useState("");
   const [filteredPersons, setFilteredPersons] = useState([]);
+  const [notificationMessage, setNotificationMessage] = useState({
+    type: null,
+    message: null,
+  });
 
   useEffect(() => {
     personService.getAll().then((initialPersons) => {
@@ -22,6 +27,39 @@ const App = () => {
     });
   }, []);
 
+  // Filter function
+  const filter = (word, array) => {
+    const fP = array.filter((person) =>
+      person.name.toLowerCase().includes(word.toLowerCase())
+    );
+    setFilterWord(word);
+    setFilteredPersons(fP);
+  };
+
+  // Check if the name is not repeated
+  const checkName = (newName) => {
+    return persons.some((person) => person.name === newName);
+  };
+
+  // Send notification
+  const sendNotification = (type, message) => {
+    setNotificationMessage({
+      type: type,
+      message: message,
+    });
+    setTimeout(() => {
+      setNotificationMessage({ type: null, message: null });
+    }, 3500);
+  };
+
+  // Reset states
+  const resetStates = (newPersons) => {
+    setPersons(newPersons);
+    filter(filterWord, newPersons);
+    setNewName("");
+    setNewNumber("");
+  };
+
   // Update number
   const updatePersonNumber = (personName, newNumber) => {
     const personToChange = persons.find((person) => person.name === personName);
@@ -29,21 +67,22 @@ const App = () => {
       ...personToChange,
       number: newNumber,
     };
-
     personService
       .updateNumber(updatedPerson, personToChange.id)
       .then((returnedPerson) => {
         const newPersons = persons
           .filter((person) => person.id !== returnedPerson.id)
           .concat(returnedPerson);
-        setPersons(newPersons);
-        filter(filterWord, newPersons);
-        setNewName("");
-        setNewNumber("");
+        resetStates(newPersons);
+        sendNotification("Success", `'${returnedPerson.name}' number updated`);
       })
       .catch((err) => {
-        alert("Error updating number");
-        console.log(err);
+        if (err.response.status === 404)
+          sendNotification(
+            "Error",
+            `Information of '${personToChange.name}' has already been removed from the server`
+          );
+        else sendNotification("Error", "Error updating number");
       });
   };
 
@@ -53,17 +92,14 @@ const App = () => {
       name: newName,
       number: newNumber,
     };
-
     personService
       .create(newPerson)
       .then((returnedPerson) => {
         const newPersons = persons.concat(returnedPerson);
-        setPersons(newPersons);
-        filter(filterWord, newPersons);
-        setNewName("");
-        setNewNumber("");
+        resetStates(newPersons);
+        sendNotification("Success", `Added '${returnedPerson.name}'`);
       })
-      .catch((err) => alert("Error adding a new contact"));
+      .catch(() => sendNotification("Error", "Error adding a new contact"));
   };
 
   // Handle Delete
@@ -75,15 +111,15 @@ const App = () => {
           const newPersons = persons.filter(
             (person) => person.id !== deletedPerson.id
           );
-          setPersons(newPersons);
-          filter(filterWord, newPersons);
+          resetStates(newPersons);
+          sendNotification("Success", `Deleted '${deletedPerson.name}'`);
         })
-        .catch((err) => alert("Error deleting person"));
+        .catch(() => sendNotification("Error", "Error deleting the contact"));
     }
   };
 
-  // Hander add new contact button
-  const handleAdd = (event) => {
+  // Handle form submit
+  const handleSubmit = (event) => {
     event.preventDefault();
     if (newName.trim() === "" || newNumber.trim() === "") {
       alert(`There's an empty field.`);
@@ -100,7 +136,6 @@ const App = () => {
     }
   };
 
-  // ===== Handlers for the input changes
   const handleNewName = (event) => {
     setNewName(event.target.value);
   };
@@ -109,29 +144,19 @@ const App = () => {
     setNewNumber(event.target.value);
   };
 
-  // ===== Handler for the filter
   const handleFilter = (event) => {
     const newFilterWord = event.target.value;
     filter(newFilterWord, persons);
-  };
-
-  const filter = (word, array) => {
-    const fP = array.filter((person) =>
-      person.name.toLowerCase().includes(word.toLowerCase())
-    );
-    setFilterWord(word);
-    setFilteredPersons(fP);
-  };
-
-  // Check if the name is not repeated
-  const checkName = (newName) => {
-    return persons.some((person) => person.name === newName);
   };
 
   // ====== Render section
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification
+        type={notificationMessage.type}
+        message={notificationMessage.message}
+      />
       <Filter handler={handleFilter} valueInput={filterWord} />
       <h3>Add a new contact</h3>
       <PersonForm
@@ -139,7 +164,7 @@ const App = () => {
         newName={newName}
         handleNewNumber={handleNewNumber}
         newNumber={newNumber}
-        handleAdd={handleAdd}
+        handleSubmit={handleSubmit}
       />
       <h3>Numbers</h3>
       <Contacts persons={filteredPersons} handleDelete={handleDelete} />
