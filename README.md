@@ -16,3 +16,7 @@ Exercises solution
 
 - Exercises 1, 2, 3, 4, 5: [CourseInfo](./Part2/courseinfo)
 - Exercises 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17: [Phonebook](./Part2/phonebook)
+
+## Part 3
+
+- Exercises 1, 2, 3, 4, 5, 6: [Phonebook Backend](./Part3/phonebook-backend)
