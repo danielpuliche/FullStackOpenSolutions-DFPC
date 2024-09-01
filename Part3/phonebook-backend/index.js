@@ -1,7 +1,25 @@
 const express = require("express");
-const app = express();
+const morgan = require("morgan");
 
+const app = express();
 app.use(express.json());
+
+// Token for the personalized POST format
+morgan.token("body", (req) => {
+  return JSON.stringify(req.body);
+});
+
+const postFormat =
+  ":method :url :status :res[content-length] - :response-time ms - :body";
+
+// Set the format for the morgan middleware
+app.use((req, res, next) => {
+  if (req.method === "POST") {
+    morgan(postFormat)(req, res, next);
+  } else {
+    morgan("tiny")(req, res, next);
+  }
+});
 
 // ===================================================================================
 
@@ -29,6 +47,7 @@ let persons = [
 ];
 
 // ===================================================================================
+// Functions used by the routes
 
 const generatedIds = new Set();
 
@@ -44,6 +63,7 @@ const generateId = () => {
 };
 
 // ===================================================================================
+// Routes
 
 app.get("/info", (request, response) => {
   const currentDate = new Date();
@@ -67,11 +87,11 @@ app.get("/api/persons/:id", (request, response) => {
   }
 });
 
-app.post("/api/persons", (request, response) => {
-  const { name, number } = request.body;
+app.post("/api/persons", (req, res) => {
+  const { name, number } = req.body;
 
   if (!name || !number) {
-    return response.status(400).json({
+    return res.status(400).json({
       error: "Name and number are required fields.",
     });
   }
@@ -79,7 +99,7 @@ app.post("/api/persons", (request, response) => {
   const nameExists = persons.some((person) => person.name === name.trim());
 
   if (nameExists) {
-    return response.status(409).json({
+    return res.status(409).json({
       error: "Name must be unique",
     });
   }
@@ -92,7 +112,7 @@ app.post("/api/persons", (request, response) => {
 
   persons = persons.concat(person);
 
-  response.json(person);
+  res.status(201).json(person);
 });
 
 app.delete("/api/persons/:id", (request, response) => {
@@ -107,6 +127,7 @@ app.delete("/api/persons/:id", (request, response) => {
 });
 
 // ===================================================================================
+// Run the server
 
 const PORT = 3001;
 app.listen(PORT, () => {
