@@ -1,8 +1,7 @@
 const express = require("express");
-const morgan = require("morgan");
-
 const app = express();
-app.use(express.json());
+const morgan = require("morgan");
+const cors = require("cors");
 
 // Token for the personalized POST format
 morgan.token("body", (req) => {
@@ -11,6 +10,10 @@ morgan.token("body", (req) => {
 
 const postFormat =
   ":method :url :status :res[content-length] - :response-time ms - :body";
+
+app.use(express.static("./dist"));
+app.use(express.json());
+app.use(cors());
 
 // Set the format for the morgan middleware
 app.use((req, res, next) => {
@@ -119,8 +122,11 @@ app.delete("/api/persons/:id", (request, response) => {
   const id = request.params.id;
 
   if (persons.some((person) => person.id === id)) {
+    const deletedPerson = persons.find((person) => person.id === id);
     persons = persons.filter((person) => person.id !== id);
-    response.status(204).end();
+
+    console.log(deletedPerson);
+    response.status(200).json(deletedPerson);
   } else {
     response.status(404).end();
   }
@@ -129,7 +135,7 @@ app.delete("/api/persons/:id", (request, response) => {
 // ===================================================================================
 // Run the server
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
