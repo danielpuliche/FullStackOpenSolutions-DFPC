@@ -3,6 +3,9 @@ const app = express();
 const morgan = require("morgan");
 const cors = require("cors");
 
+// Get Person schema from MongoDB and get connection
+const Person = require("./models/person");
+
 // Token for the personalized POST format
 morgan.token("body", (req) => {
   return JSON.stringify(req.body);
@@ -25,69 +28,27 @@ app.use((req, res, next) => {
 });
 
 // ===================================================================================
-
-let persons = [
-  {
-    id: "1",
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: "2",
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: "3",
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: "4",
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
-
-// ===================================================================================
-// Functions used by the routes
-
-const generatedIds = new Set();
-
-const generateId = () => {
-  let id;
-
-  do {
-    id = Math.random().toString(36).substring(2, 9);
-  } while (generatedIds.has(id));
-
-  generatedIds.add(id);
-  return id;
-};
-
-// ===================================================================================
 // Routes
 
-app.get("/info", (request, response) => {
-  const currentDate = new Date();
-  response.send(
-    `<p>Phonebook has info for ${persons.length} people</p><p>${currentDate}</p>`
-  );
-});
+// app.get("/info", (request, response) => {
+//   const currentDate = new Date();
+//   response.send(
+//     `<p>Phonebook has info for ${persons.length} people</p><p>${currentDate}</p>`
+//   );
+// });
 
 app.get("/api/persons", (request, response) => {
-  response.json(persons);
+  Person.find({}).then((persons) => response.json(persons));
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  const id = request.params.id;
-  const person = persons.find((person) => person.id === id);
-
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  Person.findById(request.params.id)
+    .then((person) => {
+      response.json(person);
+    })
+    .catch((error) => {
+      response.status(404).json({ error: "Person not found" });
+    });
 });
 
 app.post("/api/persons", (req, res) => {
@@ -99,23 +60,23 @@ app.post("/api/persons", (req, res) => {
     });
   }
 
-  const nameExists = persons.some((person) => person.name === name.trim());
+  // const nameExists = persons.some((person) => person.name === name.trim());
 
-  if (nameExists) {
-    return res.status(409).json({
-      error: "Name must be unique",
-    });
-  }
+  // if (nameExists) {
+  //   return res.status(409).json({
+  //     error: "Name must be unique",
+  //   });
 
-  const person = {
+  // }
+
+  const person = new Person({
     name: name,
     number: number,
-    id: generateId(),
-  };
+  });
 
-  persons = persons.concat(person);
-
-  res.status(201).json(person);
+  person.save().then((savedPerson) => {
+    res.status(201).json(savedPerson);
+  });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
@@ -135,7 +96,7 @@ app.delete("/api/persons/:id", (request, response) => {
 // ===================================================================================
 // Run the server
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
