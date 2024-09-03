@@ -82,7 +82,7 @@ const App = () => {
             "Error",
             `Information of '${personToChange.name}' has already been removed from the server`
           );
-        else sendNotification("Error", "Error updating number");
+        else sendNotification("Error", err.response.data.error);
       });
   };
 
@@ -99,7 +99,9 @@ const App = () => {
         resetStates(newPersons);
         sendNotification("Success", `Added '${returnedPerson.name}'`);
       })
-      .catch(() => sendNotification("Error", "Error adding a new contact"));
+      .catch((error) => {
+        sendNotification("Error", error.response.data.error);
+      });
   };
 
   // Handle Delete
