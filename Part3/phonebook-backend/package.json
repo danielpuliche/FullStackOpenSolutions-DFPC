@@ -10,7 +10,8 @@
     "build:ui": "rm -rf dist && cd ../../Part2/phonebook/ && npm run build && cp -r dist ../../Part3/phonebook-backend",
     "deploy": "fly deploy",
     "deploy:full": "npm run build:ui && npm run deploy",
-    "logs:prod": "fly logs"
+    "logs:prod": "fly logs",
+    "lint": "eslint ."
   },
   "author": "danielpuliche",
   "license": "ISC",
@@ -24,6 +25,7 @@
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "@flydotio/dockerfile": "^0.5.8",
+    "@stylistic/eslint-plugin-js": "^2.7.2",
     "eslint": "^9.9.1",
     "eslint-prettier": "0.0.0-empty",
     "globals": "^15.9.0",
