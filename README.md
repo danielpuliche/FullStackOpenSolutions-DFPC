@@ -20,4 +20,4 @@ Exercises solution
 
 ## Part 3
 
-- Exercises 1-11: [Phonebook Backend](./Part3/phonebook-backend)
+- Exercises 1-22: [Phonebook Backend](./Part3/phonebook-backend)
