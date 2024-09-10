@@ -39,6 +39,30 @@ describe('Api blog', () => {
     })
   })
 
+  test('create a new blog correctly', async () => {
+    const newBlog = {
+      title: blogHelper.listWithOneBlog[0].title,
+      author: blogHelper.listWithOneBlog[0].author,
+      url: blogHelper.listWithOneBlog[0].url,
+      likes: blogHelper.listWithOneBlog[0].likes
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const blogsAtEnd = await blogHelper.blogsInDb()
+    assert.strictEqual(blogsAtEnd.length, blogHelper.blogs.length + 1)
+
+    const titles = blogsAtEnd.map((blog) => blog.title)
+    assert(titles.includes(newBlog.title))
+
+    const url = blogsAtEnd.map((blog) => blog.url)
+    assert(url.includes(newBlog.url))
+  })
+
   after(async () => {
     await mongoose.connection.close()
   })
