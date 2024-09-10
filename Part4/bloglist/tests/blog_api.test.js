@@ -5,7 +5,7 @@ const supertest = require('supertest')
 const app = require('../app')
 
 const Blog = require('../models/blog')
-const blogHelper = require('./objects/blogLists')
+const blogHelper = require('./test_helper')
 
 const api = supertest(app)
 
@@ -29,6 +29,14 @@ describe('Api blog', () => {
     const response = await api.get('/api/blogs')
 
     assert.strictEqual(response.body.length, blogHelper.blogs.length)
+  })
+
+  test('unique identifier is id, not _id', async () => {
+    const blogs = await blogHelper.blogsInDb()
+    blogs.forEach((blog) => {
+      assert.notStrictEqual(blog.id, undefined)
+      assert.strictEqual(blog._id, undefined)
+    })
   })
 
   after(async () => {
