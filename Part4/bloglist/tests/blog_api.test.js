@@ -141,7 +141,55 @@ describe('Api blog with initial blogs', () => {
     })
   })
 
-  after(async () => {
-    await mongoose.connection.close()
+  describe('update a blog information', () => {
+    test('update a blog with valid info', async () => {
+      const blogsAtStart = await blogHelper.blogsInDb()
+      const blogBeforeUpdate = blogsAtStart[0]
+
+      const blogToUpdate = {
+        ...blogBeforeUpdate,
+        title: 'New Title',
+        author: 'New Author',
+        url: 'New url',
+        likes: blogBeforeUpdate.likes + 1
+      }
+
+      await api
+        .put(`/api/blogs/${blogToUpdate.id}`)
+        .send(blogToUpdate)
+        .expect(200)
+
+      const blogsAtEnd = await blogHelper.blogsInDb()
+      assert.strictEqual(blogsAtEnd.length, blogsAtStart.length)
+
+      const updatedBlog = blogsAtEnd.find((blog) => blog.id === blogBeforeUpdate.id)
+      assert.deepStrictEqual(updatedBlog, blogToUpdate)
+      assert.strictEqual(updatedBlog.likes, blogBeforeUpdate.likes + 1)
+    })
+
+    test('update a blog with invalid info dont update and return 400', async () => {
+      const blogsAtStart = await blogHelper.blogsInDb()
+      const blogBeforeUpdate = blogsAtStart[0]
+
+      const blogToUpdate = {
+        id: blogBeforeUpdate.id,
+        likes: 'No Valid, just numbers!'
+      }
+
+      await api
+        .put(`/api/blogs/${blogToUpdate.id}`)
+        .send(blogToUpdate)
+        .expect(400)
+
+      const blogsAtEnd = await blogHelper.blogsInDb()
+      assert.strictEqual(blogsAtEnd.length, blogsAtStart.length)
+
+      const updatedBlog = blogsAtEnd.find((blog) => blog.id === blogBeforeUpdate.id)
+      assert.deepStrictEqual(updatedBlog, blogBeforeUpdate)
+    })
   })
+})
+
+after(async () => {
+  await mongoose.connection.close()
 })
