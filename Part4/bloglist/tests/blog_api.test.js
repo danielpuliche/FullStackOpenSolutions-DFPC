@@ -63,6 +63,22 @@ describe('Api blog', () => {
     assert(url.includes(newBlog.url))
   })
 
+  test('set the likes to zero when missing the likes property', async () => {
+    const newBlog = {
+      title: blogHelper.listWithOneBlog[0].title,
+      author: blogHelper.listWithOneBlog[0].author,
+      url: blogHelper.listWithOneBlog[0].url
+    }
+
+    const addedBlog = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    assert.strictEqual(addedBlog.body.likes, 0)
+  })
+
   after(async () => {
     await mongoose.connection.close()
   })
