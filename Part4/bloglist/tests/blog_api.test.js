@@ -9,15 +9,15 @@ const blogHelper = require('./test_helper')
 
 const api = supertest(app)
 
-beforeEach(async () => {
-  await Blog.deleteMany({})
-  const blogObjects = blogHelper.blogs
-    .map((blog) => new Blog(blog))
-  const promiseArray = blogObjects.map((blog) => blog.save())
-  await Promise.all(promiseArray)
-})
+describe('Api blog with initial blogs', () => {
+  beforeEach(async () => {
+    await Blog.deleteMany({})
+    const blogObjects = blogHelper.blogs
+      .map((blog) => new Blog(blog))
+    const promiseArray = blogObjects.map((blog) => blog.save())
+    await Promise.all(promiseArray)
+  })
 
-describe('Api blog', () => {
   test('blogs are returned as json', async () => {
     await api
       .get('/api/blogs')
@@ -31,69 +31,114 @@ describe('Api blog', () => {
     assert.strictEqual(response.body.length, blogHelper.blogs.length)
   })
 
-  test('unique identifier is id, not _id', async () => {
-    const blogs = await blogHelper.blogsInDb()
-    blogs.forEach((blog) => {
-      assert.notStrictEqual(blog.id, undefined)
-      assert.strictEqual(blog._id, undefined)
+  describe('Add new blogs', () => {
+    test('create a new blog correctly', async () => {
+      const newBlog = {
+        title: blogHelper.listWithOneBlog[0].title,
+        author: blogHelper.listWithOneBlog[0].author,
+        url: blogHelper.listWithOneBlog[0].url,
+        likes: blogHelper.listWithOneBlog[0].likes
+      }
+
+      await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+      const blogsAtEnd = await blogHelper.blogsInDb()
+      assert.strictEqual(blogsAtEnd.length, blogHelper.blogs.length + 1)
+
+      const titles = blogsAtEnd.map((blog) => blog.title)
+      assert(titles.includes(newBlog.title))
+
+      const url = blogsAtEnd.map((blog) => blog.url)
+      assert(url.includes(newBlog.url))
+    })
+
+    test('set the likes to zero when missing the likes property', async () => {
+      const newBlog = {
+        title: blogHelper.listWithOneBlog[0].title,
+        author: blogHelper.listWithOneBlog[0].author,
+        url: blogHelper.listWithOneBlog[0].url
+      }
+
+      await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+      const blogsAtEnd = await blogHelper.blogsInDb()
+      const likesByTitle = blogsAtEnd.reduce((dictTitles, blog) => {
+        dictTitles[blog.title] = blog.likes
+        return dictTitles
+      }, {})
+
+      assert.strictEqual(likesByTitle[newBlog.title], 0)
+    })
+
+    test('missing title and url return an 400', async () => {
+      const newBlog = {
+        author: blogHelper.listWithOneBlog[0].author
+      }
+
+      const response = await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(400)
     })
   })
 
-  test('create a new blog correctly', async () => {
-    const newBlog = {
-      title: blogHelper.listWithOneBlog[0].title,
-      author: blogHelper.listWithOneBlog[0].author,
-      url: blogHelper.listWithOneBlog[0].url,
-      likes: blogHelper.listWithOneBlog[0].likes
-    }
-
-    await api
-      .post('/api/blogs')
-      .send(newBlog)
-      .expect(201)
-      .expect('Content-Type', /application\/json/)
-
-    const blogsAtEnd = await blogHelper.blogsInDb()
-    assert.strictEqual(blogsAtEnd.length, blogHelper.blogs.length + 1)
-
-    const titles = blogsAtEnd.map((blog) => blog.title)
-    assert(titles.includes(newBlog.title))
-
-    const url = blogsAtEnd.map((blog) => blog.url)
-    assert(url.includes(newBlog.url))
+  describe('Correct properties name', () => {
+    test('unique identifier is id, not _id', async () => {
+      const blogs = await blogHelper.blogsInDb()
+      blogs.forEach((blog) => {
+        assert.notStrictEqual(blog.id, undefined)
+        assert.strictEqual(blog._id, undefined)
+      })
+    })
   })
 
-  test('set the likes to zero when missing the likes property', async () => {
-    const newBlog = {
-      title: blogHelper.listWithOneBlog[0].title,
-      author: blogHelper.listWithOneBlog[0].author,
-      url: blogHelper.listWithOneBlog[0].url
-    }
+  describe('delete a single post', () => {
+    test('an existing one is deleted correctly', async () => {
+      const blogsAtStart = await blogHelper.blogsInDb()
+      const blogToDelete = blogsAtStart[0]
 
-    await api
-      .post('/api/blogs')
-      .send(newBlog)
-      .expect(201)
-      .expect('Content-Type', /application\/json/)
+      await api
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .expect(204)
 
-    const blogsAtEnd = await blogHelper.blogsInDb()
-    const likesByTitle = blogsAtEnd.reduce((dictTitles, blog) => {
-      dictTitles[blog.title] = blog.likes
-      return dictTitles
-    }, {})
+      const blogsAtEnd = await blogHelper.blogsInDb()
+      assert.strictEqual(blogsAtEnd.length, blogsAtStart.length - 1)
 
-    assert.strictEqual(likesByTitle[newBlog.title], 0)
-  })
+      const identifiers = blogsAtEnd.map((b) => b.id)
+      assert(!identifiers.includes(blogToDelete.id))
+    })
 
-  test('missing title and url return an 400', async () => {
-    const newBlog = {
-      author: blogHelper.listWithOneBlog[0].author
-    }
+    test('a invalid id return 400', async () => {
+      const invalidId = '5a3d5da59070081a82a3445'
+      const blogsAtStart = await blogHelper.blogsInDb()
 
-    const response = await api
-      .post('/api/blogs')
-      .send(newBlog)
-      .expect(400)
+      await api
+        .delete(`/api/blogs/${invalidId}`)
+        .expect(400)
+
+      const blogsAtEnd = await blogHelper.blogsInDb()
+      assert.strictEqual(blogsAtEnd.length, blogsAtStart.length)
+    })
+
+    test('an non existing one return 204 but not remove anything', async () => {
+      const blogsAtStart = await blogHelper.blogsInDb()
+      const nonExistingId = await blogHelper.nonExistingId()
+
+      await api
+        .delete(`/api/blogs/${nonExistingId}`)
+        .expect(204)
+
+      const blogsAtEnd = await blogHelper.blogsInDb()
+      assert.strictEqual(blogsAtEnd.length, blogsAtStart.length)
+    })
   })
 
   after(async () => {
