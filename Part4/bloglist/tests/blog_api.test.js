@@ -70,13 +70,30 @@ describe('Api blog', () => {
       url: blogHelper.listWithOneBlog[0].url
     }
 
-    const addedBlog = await api
+    await api
       .post('/api/blogs')
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
 
-    assert.strictEqual(addedBlog.body.likes, 0)
+    const blogsAtEnd = await blogHelper.blogsInDb()
+    const likesByTitle = blogsAtEnd.reduce((dictTitles, blog) => {
+      dictTitles[blog.title] = blog.likes
+      return dictTitles
+    }, {})
+
+    assert.strictEqual(likesByTitle[newBlog.title], 0)
+  })
+
+  test('missing title and url return an 400', async () => {
+    const newBlog = {
+      author: blogHelper.listWithOneBlog[0].author
+    }
+
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
   })
 
   after(async () => {
