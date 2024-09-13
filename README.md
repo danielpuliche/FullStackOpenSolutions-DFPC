@@ -21,3 +21,7 @@ Exercises solution
 ## Part 3
 
 - Exercises 1-22: [Phonebook Backend](./Part3/phonebook-backend)
+
+## Part 4
+
+- Exercises 1-23: [Blog List Backend](./Part4/bloglist)
