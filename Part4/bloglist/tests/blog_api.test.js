@@ -1,15 +1,41 @@
-const { test, after, describe, beforeEach } = require('node:test')
+const { test, after, describe, beforeEach, before } = require('node:test')
 const assert = require('node:assert')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
 
 const Blog = require('../models/blog')
+const User = require('../models/user')
+
 const blogHelper = require('./test_helper')
 
 const api = supertest(app)
 
+// ===============================================================================
+
 describe('Api blog with initial blogs', () => {
+  let token
+
+  before(async () => {
+    await User.deleteMany({})
+
+    const testUser = {
+      username: 'testUser',
+      name: 'User Test',
+      password: 'password'
+    }
+
+    await api
+      .post('/api/users')
+      .send(testUser)
+
+    const response = await api
+      .post('/api/login')
+      .send({ username: 'testUser', password: 'password' })
+
+    token = response.body.token
+  })
+
   beforeEach(async () => {
     await Blog.deleteMany({})
     const blogObjects = blogHelper.blogs
@@ -17,6 +43,8 @@ describe('Api blog with initial blogs', () => {
     const promiseArray = blogObjects.map((blog) => blog.save())
     await Promise.all(promiseArray)
   })
+
+  // ===============================================================================
 
   test('blogs are returned as json', async () => {
     await api
@@ -32,6 +60,25 @@ describe('Api blog with initial blogs', () => {
   })
 
   describe('Add new blogs', () => {
+    test('Unauthorized when token is not provided', async () => {
+      const response = await api
+        .post('/api/blogs')
+        .expect(401)
+
+      assert.strictEqual(response.body.error, 'token invalid')
+    })
+
+    test('Token Expired return 401', async () => {
+      const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImRhbml0ZXN0IiwiaWQiOiI2NmU0NTkwZDU2OTAyOTQyMjAwMmFiMGQiLCJpYXQiOjE3MjYyNDEwNTUsImV4cCI6MTcyNjI0NDY1NX0.JMuZdY_kuY2m85G5vxWKsab-BUNKbBZiAztE2UW2tqQ'
+
+      const response = await api
+        .post('/api/blogs')
+        .set('Authorization', `Bearer ${expiredToken}`)
+        .expect(401)
+
+      assert.strictEqual(response.body.error, 'token expired')
+    })
+
     test('create a new blog correctly', async () => {
       const newBlog = {
         title: blogHelper.listWithOneBlog[0].title,
@@ -42,6 +89,7 @@ describe('Api blog with initial blogs', () => {
 
       await api
         .post('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
         .send(newBlog)
         .expect(201)
         .expect('Content-Type', /application\/json/)
@@ -65,6 +113,7 @@ describe('Api blog with initial blogs', () => {
 
       await api
         .post('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
         .send(newBlog)
         .expect(201)
         .expect('Content-Type', /application\/json/)
@@ -83,8 +132,9 @@ describe('Api blog with initial blogs', () => {
         author: blogHelper.listWithOneBlog[0].author
       }
 
-      const response = await api
+      await api
         .post('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
         .send(newBlog)
         .expect(400)
     })
@@ -101,12 +151,38 @@ describe('Api blog with initial blogs', () => {
   })
 
   describe('delete a single post', () => {
+    let nonExistingId
+
+    test('Unauthorized when token is not provided', async () => {
+      const response = await api
+        .delete(`/api/blogs/${blogHelper.listWithOneBlog[0]._id}`)
+        .expect(401)
+
+      assert.strictEqual(response.body.error, 'token invalid')
+    })
+
+    test('Token Expired return 401', async () => {
+      const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImRhbml0ZXN0IiwiaWQiOiI2NmU0NTkwZDU2OTAyOTQyMjAwMmFiMGQiLCJpYXQiOjE3MjYyNDEwNTUsImV4cCI6MTcyNjI0NDY1NX0.JMuZdY_kuY2m85G5vxWKsab-BUNKbBZiAztE2UW2tqQ'
+
+      const response = await api
+        .delete(`/api/blogs/${blogHelper.listWithOneBlog[0]._id}`)
+        .set('Authorization', `Bearer ${expiredToken}`)
+        .expect(401)
+
+      assert.strictEqual(response.body.error, 'token expired')
+    })
+
     test('an existing one is deleted correctly', async () => {
+      const blogToDelete = await api
+        .post('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
+        .send(blogHelper.blogs[0])
+
       const blogsAtStart = await blogHelper.blogsInDb()
-      const blogToDelete = blogsAtStart[0]
 
       await api
-        .delete(`/api/blogs/${blogToDelete.id}`)
+        .delete(`/api/blogs/${blogToDelete.body.id}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(204)
 
       const blogsAtEnd = await blogHelper.blogsInDb()
@@ -114,6 +190,8 @@ describe('Api blog with initial blogs', () => {
 
       const identifiers = blogsAtEnd.map((b) => b.id)
       assert(!identifiers.includes(blogToDelete.id))
+
+      nonExistingId = blogToDelete.body.id
     })
 
     test('a invalid id return 400', async () => {
@@ -122,6 +200,7 @@ describe('Api blog with initial blogs', () => {
 
       await api
         .delete(`/api/blogs/${invalidId}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(400)
 
       const blogsAtEnd = await blogHelper.blogsInDb()
@@ -130,10 +209,10 @@ describe('Api blog with initial blogs', () => {
 
     test('an non existing one return 204 but not remove anything', async () => {
       const blogsAtStart = await blogHelper.blogsInDb()
-      const nonExistingId = await blogHelper.nonExistingId()
 
       await api
         .delete(`/api/blogs/${nonExistingId}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(204)
 
       const blogsAtEnd = await blogHelper.blogsInDb()

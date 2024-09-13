@@ -37,6 +37,10 @@ blogsRouter.delete('/:id', middleware.userExtractor, async (request, response) =
 
   const blogToDelete = await Blog.findById(request.params.id)
 
+  if (!blogToDelete) {
+    return response.status(204).end()
+  }
+
   if (blogToDelete.user.toString() !== user._id.toString()) {
     response.status(401).json({ error: 'Not valid user to delete this note' })
   } else {
