@@ -25,3 +25,8 @@ Exercises solution
 ## Part 4
 
 - Exercises 1-23: [Blog List Backend](./Part4/bloglist)
+
+## Part 5
+
+- Exercise 1: [Blog List Frontend](./Part5/bloglist-frontend)
+
