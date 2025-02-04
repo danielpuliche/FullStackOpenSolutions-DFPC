@@ -28,5 +28,5 @@ Exercises solution
 
 ## Part 5
 
-- Exercise 1: [Blog List Frontend](./Part5/bloglist-frontend)
+- Exercise 1-4: [Blog List Frontend](./Part5/bloglist-frontend)
 
