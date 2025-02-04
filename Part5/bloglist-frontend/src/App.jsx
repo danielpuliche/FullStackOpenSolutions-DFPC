@@ -8,7 +8,8 @@ import loginService from './services/login'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [errorMessage, setErrorMessage] = useState(null)
+  const [notificationMessage, setNotificationMessage] = useState(null)
+  const [messageType, setMessageType] = useState('error')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
@@ -45,9 +46,10 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch (exception) {
-      setErrorMessage('Wrong credentials')
+      setNotificationMessage('Wrong username or password')
+      setMessageType('error')
       setTimeout(() => {
-        setErrorMessage(null)
+        setNotificationMessage(null)
       }, 5000)
     }
   }
@@ -61,9 +63,10 @@ const App = () => {
       blogService.setToken(null)
       setUser(null)
     } catch (exception) {
-      setErrorMessage('Logout fail')
+      setMessageType('error')
+      setNotificationMessage('Logout fail')
       setTimeout(() => {
-        setErrorMessage(null)
+        setNotificationMessage(null)
       }, 5000)
     }
   }
@@ -84,11 +87,16 @@ const App = () => {
       setTitle('')
       setAuthor('')
       setUrl('')
-      console.log('Blog created')
-    } catch (exception) {
-      setErrorMessage('Error creating a new blog')
+      setMessageType('success')
+      setNotificationMessage(`A new blog "${title}" by "${author}" added.`)
       setTimeout(() => {
-        setErrorMessage(null)
+        setNotificationMessage(null)
+      }, 5000)
+    } catch (exception) {
+      setMessageType('error')
+      setNotificationMessage('Error creating a new blog')
+      setTimeout(() => {
+        setNotificationMessage(null)
       }, 5000)
     }
   }
@@ -133,7 +141,7 @@ const App = () => {
 
   return (
     <div>
-      <Notification message={errorMessage} />
+      <Notification message={notificationMessage} msgType={messageType} />
       {
         user === null
           ? loginForm()
