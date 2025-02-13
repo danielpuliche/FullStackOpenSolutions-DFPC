@@ -7,19 +7,15 @@ import Notification from './components/Notification'
 import Blog from './components/Blog'
 import Togglable from './components/Togglable'
 import BlogForm from './components/BlogForm'
+import LoginForm from './components/LoginForm'
+import BlogList from './components/BlogList'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [notificationMessage, setNotificationMessage] = useState(null)
-  const [messageType, setMessageType] = useState('error')
   const [user, setUser] = useState(null)
 
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
+  const [notificationMessage, setNotificationMessage] = useState(null)
+  const [messageType, setMessageType] = useState('error')
 
   const blogFormRef = useRef()
 
@@ -45,16 +41,12 @@ const App = () => {
   // ===============================
 
   // Login handler
-  const handleLogin = async (event) => {
-    event.preventDefault()
-
+  const handleLogin = async (loginUser) => {
     try {
-      const user = await loginService.login({ username, password })
+      const user = await loginService.login(loginUser)
       window.localStorage.setItem('loggedBlogAppUser', JSON.stringify(user))
       blogService.setToken(user.token)
       setUser(user)
-      setUsername('')
-      setPassword('')
     } catch (exception) {
       setNotificationMessage('Wrong username or password')
       setMessageType('error')
@@ -81,25 +73,14 @@ const App = () => {
     }
   }
 
-  // Create Blog handler
-  const handleCreateBlog = async (event) => {
-    event.preventDefault()
-
+  // Create Blog
+  const createNewBlog = async (newBlog) => {
     try {
-      const newBlog = {
-        title,
-        author,
-        url
-      }
-
       const returnedBlog = await blogService.create(newBlog)
-      blogFormRef.current.toggleVisibility()
       setBlogs(blogs.concat(returnedBlog))
-      setTitle('')
-      setAuthor('')
-      setUrl('')
+      blogFormRef.current.toggleVisibility()
       setMessageType('success')
-      setNotificationMessage(`A new blog "${title}" by "${author}" added.`)
+      setNotificationMessage(`A new blog "${newBlog.title}" by "${newBlog.author}" added.`)
       setTimeout(() => {
         setNotificationMessage(null)
       }, 5000)
@@ -114,14 +95,14 @@ const App = () => {
 
   // Login Form
   const loginForm = () => (
-    <div>
-      <h2>Log in to application</h2>
-      <form onSubmit={handleLogin}>
-        <div>Username: <input type='text' value={username} name='Username' onChange={({ target }) => setUsername(target.value)} /></div>
-        <div>Password: <input type='password' value={password} name='Password' onChange={({ target }) => setPassword(target.value)} /></div>
-        <button type='submit'>Login</button>
-      </form>
-    </div>
+    <LoginForm loginUser={handleLogin} />
+  )
+
+  // Blog form
+  const blogForm = () => (
+    <Togglable buttonLabel='New blog' ref={blogFormRef}>
+      <BlogForm createNewBlog={createNewBlog} />
+    </Togglable>
   )
 
   // Blog List
@@ -130,31 +111,16 @@ const App = () => {
       <h2>Blogs</h2>
       <p>{user.name} logged-in.</p>
       <button onClick={handleLogout}>Logout</button>
-      <Togglable buttonLabel='New blog' ref={blogFormRef}>
-        <BlogForm
-          handleSubmit={handleCreateBlog}
-          title={title}
-          author={author}
-          url={url}
-          handleTitleChange={({ target }) => setTitle(target.value)}
-          handleAuthorChange={({ target }) => setAuthor(target.value)}
-          handleUrlChange={({ target }) => setUrl(target.value)}
-        />
-      </Togglable>
-      {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
+      {blogForm()}
+      <BlogList blogs={blogs} />
     </div>
   )
 
   return (
     <div>
       <Notification message={notificationMessage} msgType={messageType} />
-      {
-        user === null
-          ? loginForm()
-          : blogList()
-      }
+      {!user && loginForm()}
+      {user && blogList()}
     </div>
   )
 }
