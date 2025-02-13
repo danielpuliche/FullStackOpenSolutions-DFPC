@@ -4,7 +4,6 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 
 import Notification from './components/Notification'
-import Blog from './components/Blog'
 import Togglable from './components/Togglable'
 import BlogForm from './components/BlogForm'
 import LoginForm from './components/LoginForm'
@@ -77,6 +76,11 @@ const App = () => {
   const createNewBlog = async (newBlog) => {
     try {
       const returnedBlog = await blogService.create(newBlog)
+      returnedBlog.user = {
+        id: returnedBlog.user,
+        name: user.name,
+        username: user.username
+      }
       setBlogs(blogs.concat(returnedBlog))
       blogFormRef.current.toggleVisibility()
       setMessageType('success')
@@ -87,6 +91,23 @@ const App = () => {
     } catch (exception) {
       setMessageType('error')
       setNotificationMessage('Error creating a new blog')
+      setTimeout(() => {
+        setNotificationMessage(null)
+      }, 5000)
+    }
+  }
+
+  // Like a blog
+  const likeBlog = async (likedBlog) => {
+    try {
+      const updatedBlog = await blogService.update(likedBlog.id, likedBlog)
+      const updatedBlogs = [...blogs]
+      const indexLikedBlog = updatedBlogs.findIndex((blog) => blog.id === updatedBlog.id)
+      updatedBlogs[indexLikedBlog].likes = updatedBlog.likes
+      setBlogs(updatedBlogs)
+    } catch (exception) {
+      setMessageType('error')
+      setNotificationMessage('Error liking the blog')
       setTimeout(() => {
         setNotificationMessage(null)
       }, 5000)
@@ -112,7 +133,7 @@ const App = () => {
       <p>{user.name} logged-in.</p>
       <button onClick={handleLogout}>Logout</button>
       {blogForm()}
-      <BlogList blogs={blogs} />
+      <BlogList blogs={blogs} likeBlog={likeBlog} />
     </div>
   )
 
