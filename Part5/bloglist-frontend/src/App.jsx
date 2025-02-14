@@ -114,6 +114,31 @@ const App = () => {
     }
   }
 
+  // Is user created
+  const isUserCreated = (blogToCheck) => {
+    return user.username === blogToCheck.user.username
+  }
+
+  // Remove a blog
+  const removeBlog = async (blogId) => {
+    try {
+      await blogService.deleteBlog(blogId)
+      const updatedBlogs = blogs.filter((blog) => blog.id !== blogId)
+      setBlogs(updatedBlogs)
+      setMessageType('success')
+      setNotificationMessage('The blog was removed successfully')
+      setTimeout(() => {
+        setNotificationMessage(null)
+      }, 5000)
+    } catch (exception) {
+      setMessageType('error')
+      setNotificationMessage('Error removing the blog')
+      setTimeout(() => {
+        setNotificationMessage(null)
+      }, 5000)
+    }
+  }
+
   // Login Form
   const loginForm = () => (
     <LoginForm loginUser={handleLogin} />
@@ -133,7 +158,7 @@ const App = () => {
       <p>{user.name} logged-in.</p>
       <button onClick={handleLogout}>Logout</button>
       {blogForm()}
-      <BlogList blogs={blogs} likeBlog={likeBlog} />
+      <BlogList blogs={blogs} likeBlog={likeBlog} isUserCreated={isUserCreated} removeBlog={removeBlog} />
     </div>
   )
 
