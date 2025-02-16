@@ -1,7 +1,15 @@
 import { useState } from 'react'
+import PropTypes from 'prop-types'
 
 const Blog = ({ blog, likeBlog, isUserCreated, removeBlog }) => {
   const [visible, setVisible] = useState(false)
+
+  Blog.propTypes = {
+    blog: PropTypes.object.isRequired,
+    likeBlog: PropTypes.func.isRequired,
+    isUserCreated: PropTypes.func.isRequired,
+    removeBlog: PropTypes.func.isRequired
+  }
 
   const blogStyle = {
     paddingTop: 10,

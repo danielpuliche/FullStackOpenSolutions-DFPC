@@ -1,8 +1,13 @@
 import { useState } from 'react'
+import PropTypes from 'prop-types'
 
 const LoginForm = ({ loginUser }) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+
+  LoginForm.propTypes = {
+    loginUser: PropTypes.func.isRequired
+  }
 
   const handleLogin = (event) => {
     event.preventDefault()
