@@ -1,6 +1,7 @@
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import Blog from './Blog'
 import { expect, test, vi, describe, beforeEach } from 'vitest'
+import userEvent from '@testing-library/user-event'
 
 describe('<Blog />', () => {
   let blog
@@ -52,5 +53,21 @@ describe('<Blog />', () => {
     const defaultDiv = container.querySelector('.defaultBlog')
     expect(defaultDiv).not.toHaveTextContent('http://example.com')
     expect(defaultDiv).not.toHaveTextContent('likes: 0')
+  })
+
+  test('The detailed view of the blog component is displayed when the view button is clicked', async () => {
+    const user = userEvent.setup()
+    const viewButton = container.querySelector('.openDetailedView')
+    await user.click(viewButton)
+
+    const defaultDiv = container.querySelector('.defaultBlog')
+    expect(defaultDiv).toHaveStyle({ display: 'none' })
+
+    const detailedDiv = container.querySelector('.detailedBlog')
+    expect(detailedDiv).not.toHaveStyle({ display: 'none' })
+
+    expect(detailedDiv).toHaveTextContent('"Test blog" by Test author')
+    expect(detailedDiv).toHaveTextContent('Url: http://example.com')
+    expect(detailedDiv).toHaveTextContent('Likes: 0')
   })
 })
