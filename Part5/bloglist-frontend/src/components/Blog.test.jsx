@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import Blog from './Blog'
 import { expect, test, vi, describe, beforeEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
@@ -69,5 +69,28 @@ describe('<Blog />', () => {
     expect(detailedDiv).toHaveTextContent('"Test blog" by Test author')
     expect(detailedDiv).toHaveTextContent('Url: http://example.com')
     expect(detailedDiv).toHaveTextContent('Likes: 0')
+  })
+
+  test('The like button calls the likeBlog function when clicked', async () => {
+    const user = userEvent.setup()
+    const viewButton = container.querySelector('.openDetailedView')
+    await user.click(viewButton)
+
+    const likeButton = container.querySelector('.likeButton')
+    await user.click(likeButton)
+
+    expect(mockHandleLike.mock.calls).toHaveLength(1)
+  })
+
+  test('The like button calls the likeBlog function twice when clicked twice', async () => {
+    const user = userEvent.setup()
+    const viewButton = container.querySelector('.openDetailedView')
+    await user.click(viewButton)
+
+    const likeButton = container.querySelector('.likeButton')
+    await user.click(likeButton)
+    await user.click(likeButton)
+
+    expect(mockHandleLike.mock.calls).toHaveLength(2)
   })
 })

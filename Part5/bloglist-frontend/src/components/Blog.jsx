@@ -48,7 +48,7 @@ const Blog = ({ blog, likeBlog, isUserCreated, removeBlog }) => {
       <div style={showWhenVisible} className='detailedBlog'>
         "{blog.title}" by {blog.author} <button onClick={toggleVisibility} className='hideDetailedView'>Hide</button><br />
         Url: {blog.url}<br />
-        Likes: {blog.likes} <button onClick={giveLike}>Like</button><br />
+        Likes: {blog.likes} <button onClick={giveLike} className='likeButton'>Like</button><br />
         Added by: {blog.user.name} <br />
         <button style={removeVisible} onClick={removeHandler}>Remove</button><br />
       </div>
